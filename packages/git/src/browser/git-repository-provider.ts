@@ -19,6 +19,7 @@ import { injectable, inject } from 'inversify';
 import { WorkspaceService } from '@theia/workspace/lib/browser/workspace-service';
 import { FileSystem, FileStat } from '@theia/filesystem/lib/common';
 import { Event, Emitter } from '@theia/core';
+import URI from '@theia/core/lib/common/uri';
 
 export interface GitRefreshOptions {
     readonly maxCount: number
@@ -76,6 +77,11 @@ export class GitRepositoryProvider {
      */
     get allRepositories(): Repository[] {
         return this._allRepositories;
+    }
+
+    findRepository(uri: URI): Repository | undefined {
+        const reposSorted = this._allRepositories.sort((ra: Repository, rb: Repository) => rb.localUri.length - ra.localUri.length);
+        return reposSorted.find(repo => new URI(repo.localUri).isEqualOrParent(uri));
     }
 
     async refresh(options?: GitRefreshOptions): Promise<void> {
