@@ -29,7 +29,7 @@ import { DebugThreadsWidget } from './debug-threads-widget';
 import { DebugStackFramesWidget } from './debug-stack-frames-widget';
 import { DebugBreakpointsWidget } from './debug-breakpoints-widget';
 import { DebugVariablesWidget } from './debug-variables-widget';
-import { ExtDebugProtocol } from '@theia/debug/src/common/debug-common';
+import { ExtDebugProtocol } from '../../common/debug-common';
 import { Disposable } from '@theia/core';
 import { DebugStyles } from './base/debug-styles';
 import { DebugToolBar } from './debug-toolbar-widget';
@@ -111,10 +111,10 @@ export class DebugWidget extends BaseWidget {
 
 @injectable()
 export class DebugFrontendContribution implements FrontendApplicationContribution {
-    constructor(
-        @inject(ApplicationShell) protected readonly shell: ApplicationShell,
-        @inject(WidgetManager) protected readonly widgetManager: WidgetManager,
-        @inject(DebugSessionManager) protected readonly debugSessionManager: DebugSessionManager) { }
+
+    @inject(ApplicationShell) protected readonly shell: ApplicationShell;
+    @inject(WidgetManager) protected readonly widgetManager: WidgetManager;
+    @inject(DebugSessionManager) protected readonly debugSessionManager: DebugSessionManager;
 
     @postConstruct()
     protected init() {
@@ -132,25 +132,25 @@ export class DebugFrontendContribution implements FrontendApplicationContributio
     private async onDebugSessionDestroyed(debugSession: DebugSession): Promise<void> { }
 
     private async createDebugWidget(debugSession: DebugSession): Promise<void> {
-        const options: DebugWidgetOptions = { debugSession };
+        const { sessionId } = debugSession;
+        const options: DebugWidgetOptions = { sessionId };
         const widget = <DebugWidget>await this.widgetManager.getOrCreateWidget(DEBUG_FACTORY_ID, options);
 
         const tabBar = this.shell.getTabBarFor(widget);
         if (!tabBar) {
-            this.shell.addWidget(widget, { area: 'bottom' });
+            this.shell.addWidget(widget, { area: 'left' });
         }
         this.shell.activateWidget(widget.id);
     }
 }
 
 /**
- * Debug widget options.
+ * Debug widget options. (JSON)
  */
 export const DebugWidgetOptions = Symbol('DebugWidgetOptions');
-
 export interface DebugWidgetOptions {
     /**
      * Debug session.
      */
-    readonly debugSession: DebugSession;
+    readonly sessionId: string;
 }

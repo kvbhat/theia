@@ -25,7 +25,7 @@ import {
 import { SerializedDocumentFilter, MarkerData, Range } from '../../api/model';
 import { RPCProtocol } from '../../api/rpc-protocol';
 import { fromLanguageSelector } from '../../plugin/type-converters';
-import { UriComponents } from '@theia/plugin-ext/src/common/uri-components';
+import { UriComponents } from '../../common/uri-components';
 import { LanguageSelector } from '../../plugin/languages';
 import { DocumentFilter, MonacoModelIdentifier, testGlob, getLanguages } from 'monaco-languageclient/lib';
 import { DisposableCollection } from '@theia/core';
@@ -151,6 +151,31 @@ export class LanguagesMainImpl implements LanguagesMain {
                 }
                 return this.proxy.$provideHover(handle, model.uri, position).then(v => v!);
             }
+        };
+    }
+
+    $registerDocumentLinkProvider(handle: number, selector: SerializedDocumentFilter[]): void {
+        const languageSelector = fromLanguageSelector(selector);
+        const linkProvider = this.createLinkProvider(handle, languageSelector);
+        const disposable = new DisposableCollection();
+        for (const language of getLanguages()) {
+            if (this.matchLanguage(languageSelector, language)) {
+                disposable.push(monaco.languages.registerLinkProvider(language, linkProvider));
+            }
+        }
+        this.disposables.set(handle, disposable);
+    }
+
+    protected createLinkProvider(handle: number, selector: LanguageSelector | undefined): monaco.languages.LinkProvider {
+        return {
+            provideLinks: (model, token) => {
+                if (!this.matchModel(selector, MonacoModelIdentifier.fromModel(model))) {
+                    return undefined!;
+                }
+                return this.proxy.$provideDocumentLinks(handle, model.uri).then(v => v!);
+            },
+            resolveLink: (link: monaco.languages.ILink, token) =>
+                this.proxy.$resolveDocumentLink(handle, link).then(v => v!)
         };
     }
 

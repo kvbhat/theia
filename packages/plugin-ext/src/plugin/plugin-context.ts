@@ -58,7 +58,13 @@ import {
     ParameterInformation,
     SignatureInformation,
     SignatureHelp,
-    Hover
+    Hover,
+    DocumentLink,
+    CodeLens,
+    CodeActionKind,
+    CodeActionTrigger,
+    TextDocumentSaveReason,
+    CodeAction,
 } from './types-impl';
 import { EditorsAndDocumentsExtImpl } from './editors-and-documents';
 import { TextEditorsExtImpl } from './text-editors';
@@ -235,6 +241,11 @@ export function createAPIFactory(rpc: RPCProtocol, pluginManager: PluginManager)
             onDidOpenTextDocument(listener, thisArg?, disposables?) {
                 return documents.onDidAddDocument(listener, thisArg, disposables);
             },
+
+            onDidSaveTextDocument(listener, thisArg?, disposables?) {
+                return documents.onDidSaveTextDocument(listener, thisArg, disposables);
+            },
+
             getConfiguration(section?, resource?): theia.WorkspaceConfiguration {
                 return preferenceRegistryExt.getConfiguration(section, resource);
             },
@@ -260,6 +271,12 @@ export function createAPIFactory(rpc: RPCProtocol, pluginManager: PluginManager)
                         const data = documents.getDocumentData(uri);
                         return data && data.document;
                     }));
+            },
+            createFileSystemWatcher(globPattern: theia.GlobPattern,
+                ignoreCreateEvents?: boolean,
+                ignoreChangeEvents?: boolean,
+                ignoreDeleteEvents?: boolean): theia.FileSystemWatcher {
+                return workspaceExt.createFileSystemWatcher(globPattern, ignoreCreateEvents, ignoreChangeEvents, ignoreDeleteEvents);
             }
         };
 
@@ -321,6 +338,13 @@ export function createAPIFactory(rpc: RPCProtocol, pluginManager: PluginManager)
             ): theia.Disposable {
                 return languagesExt.registerOnTypeFormattingEditProvider(selector, provider, [firstTriggerCharacter].concat(moreTriggerCharacters));
             },
+            registerDocumentLinkProvider(selector: theia.DocumentSelector, provider: theia.DocumentLinkProvider): theia.Disposable {
+                return languagesExt.registerLinkProvider(selector, provider);
+            },
+            registerCodeActionsProvider(selector: theia.DocumentSelector, provider: theia.CodeActionProvider, metadata?: theia.CodeActionProviderMetadata): theia.Disposable {
+                return languagesExt.registerCodeActionsProvider(selector, provider, metadata);
+            }
+
         };
 
         const plugins: typeof theia.plugins = {
@@ -381,6 +405,12 @@ export function createAPIFactory(rpc: RPCProtocol, pluginManager: PluginManager)
             SignatureInformation,
             SignatureHelp,
             Hover,
+            DocumentLink,
+            CodeLens,
+            CodeActionKind,
+            CodeActionTrigger,
+            TextDocumentSaveReason,
+            CodeAction,
         };
     };
 }
