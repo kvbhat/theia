@@ -4,7 +4,8 @@
   "description": "Theia - NodeJS Debug Extension",
   "dependencies": {
     "@theia/debug": "^0.3.15",
-    "vscode-debugprotocol": "^1.26.0"
+    "vscode-debugprotocol": "^1.26.0",
+    "unzip-stream": "^0.3.0"
   },
   "publishConfig": {
     "access": "public"
@@ -42,8 +43,7 @@
     "postinstall": "node ./scripts/download-vscode-node-debug.js"
   },
   "devDependencies": {
-    "@theia/ext-scripts": "^0.3.15",
-    "unzip-stream": "^0.3.0"
+    "@theia/ext-scripts": "^0.3.15"
   },
   "nyc": {
     "extends": "../../configs/nyc.json"
