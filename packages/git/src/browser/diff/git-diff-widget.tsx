@@ -72,7 +72,10 @@ export class GitDiffWidget extends GitNavigableListWidget<GitFileChangeNode> imp
 
     async setContent(options: Git.Options.Diff) {
         this.options = options;
-        const repository = this.repositoryProvider.selectedRepository;
+        const repository = options.uri ?
+            this.repositoryProvider.findRepository(new URI(options.uri)) :
+            this.repositoryProvider.selectedRepository;
+        console.log('Repository for path ' + options.uri, repository);
         if (repository) {
             const fileChanges: GitFileChange[] = await this.git.diff(repository, {
                 range: options.range,
